@@ -2,99 +2,67 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Texture Atlas Template Maker</title>
+<title>Power-of-Two Texture Atlas Maker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
-    --bg:#0f172a; --card:#111827; --muted:#475569; --text:#e5e7eb; --accent:#22d3ee;
-    --stroke:#cbd5e1;
+    --bg:#0f172a; --panel:#0b1226; --muted:#94a3b8; --text:#e5e7eb; --accent:#22d3ee; --border:rgba(255,255,255,.14);
   }
   *{box-sizing:border-box}
-  body{
-    margin:0; font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
-    background:linear-gradient(180deg,#0b1022,#0b1228 35%,#0b142e);
-    color:var(--text);
-  }
-  header{
-    padding:24px 16px; text-align:center; border-bottom:1px solid rgba(255,255,255,.06);
-  }
-  header h1{ margin:0; font-size:clamp(20px, 3vw, 28px); letter-spacing:.3px }
-  header p{ margin:.5rem 0 0; color:#b6c2d1 }
-  main{ max-width:1200px; margin:24px auto; padding:0 16px 40px }
-  .grid{ display:grid; gap:16px; grid-template-columns: 1fr }
-  @media (min-width: 980px){
-    .grid{ grid-template-columns: 420px 1fr }
-  }
-  .card{
-    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-    border:1px solid rgba(255,255,255,.08);
-    box-shadow: 0 10px 30px rgba(0,0,0,.35);
-    border-radius:16px; padding:18px;
-  }
-  .card h2{ margin:0 0 12px; font-size:18px }
-  label{ display:block; margin:.5rem 0 .35rem; color:#cbd5e1; font-size:14px }
-  input[type="text"], input[type="number"]{
-    width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12);
-    background:#0b1226; color:var(--text); outline:none;
-  }
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0 }
+  body{margin:0; font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial; background:linear-gradient(180deg,#0b1022,#0b142e 35%,#0a1736); color:var(--text)}
+  header{padding:24px 16px; text-align:center; border-bottom:1px solid rgba(255,255,255,.06)}
+  header h1{margin:0; font-size:clamp(20px,3vw,28px)}
+  header p{margin:.5rem auto 0; color:#b6c2d1; max-width:900px}
+  main{max-width:1200px; margin:24px auto 40px; padding:0 16px}
+  .grid{display:grid; gap:16px; grid-template-columns:1fr}
+  @media (min-width: 980px){ .grid{ grid-template-columns: 420px 1fr } }
+  .card{ background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .card h2{margin:0 0 12px; font-size:18px}
+  label{display:block; margin:.5rem 0 .35rem; color:#cbd5e1; font-size:14px}
+  input[type="text"], input[type="number"], select{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0b1226; color:var(--text); outline:none }
   .row{ display:flex; gap:10px; align-items:center }
   .row > *{ flex:1 }
   .hint{ color:#9fb0c6; font-size:12px; margin-top:6px }
-  .drop{
-    border:2px dashed rgba(255,255,255,.18); border-radius:12px; padding:16px; text-align:center;
-    background:rgba(255,255,255,.02)
-  }
+  .drop{ border:2px dashed rgba(255,255,255,.18); border-radius:12px; padding:16px; text-align:center; background:rgba(255,255,255,.02) }
   .drop.drag{ background:rgba(34,211,238,.06); border-color:var(--accent) }
-  .btn{
-    display:inline-flex; align-items:center; gap:8px;
-    background:linear-gradient(180deg, #22d3ee, #06b6d4);
-    color:#06202b; font-weight:700; border:none; border-radius:11px; padding:10px 14px; cursor:pointer;
-    box-shadow: 0 6px 16px rgba(5,150,205,.35);
-  }
-  .btn.secondary{
-    background:transparent; color:#d1e3f3; border:1px solid rgba(255,255,255,.15);
-    box-shadow:none;
-  }
+  .btn{ display:inline-flex; align-items:center; gap:8px; background:linear-gradient(180deg, #22d3ee, #06b6d4); color:#06202b; font-weight:700; border:none; border-radius:11px; padding:10px 14px; cursor:pointer; box-shadow:0 6px 16px rgba(5,150,205,.35) }
+  .btn.secondary{ background:transparent; color:#d1e3f3; border:1px solid rgba(255,255,255,.15); box-shadow:none }
   .btn:disabled{ opacity:.5; cursor:not-allowed }
   .toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }
   canvas{ width:100%; height:auto; border-radius:14px; background:#fff; display:block }
-  .output-wrap{
-    display:grid; gap:12px; grid-template-columns: 1fr; align-items:start;
-  }
   .tag{ padding:2px 8px; border:1px solid rgba(255,255,255,.2); border-radius:999px; font-size:12px; color:#bfe9f5 }
   .warn{ color:#fcd34d; font-size:13px }
   .ok{ color:#86efac; font-size:13px }
-  .kv{ display:grid; grid-template-columns: 120px 1fr; gap:8px; font-size:13px; color:#c7d5e7 }
+  .kv{ display:grid; grid-template-columns: 140px 1fr; gap:8px; font-size:13px; color:#c7d5e7 }
   code.inline{ background:#0b1226; border:1px solid rgba(255,255,255,.12); padding:1px 6px; border-radius:6px }
+  .switch{ display:flex; align-items:center; gap:8px; font-size:13px }
   .footer{ color:#9fb0c6; font-size:12px; text-align:center; margin-top:10px }
 </style>
 </head>
 <body>
 <header>
-  <h1>Texture Atlas Template Maker</h1>
-  <p>Import a CSV (<code class="inline">Texture Name,size</code> where size ∈ <code class="inline">s</code>/<code class="inline">m</code>/<code class="inline">l</code>), set a max resolution, and generate a labeled blank atlas PNG.</p>
+  <h1>Power-of-Two Texture Atlas Maker</h1>
+  <p>Import a CSV (<code class="inline">Texture Name,size</code> where size ∈ <code class="inline">s</code>/<code class="inline">m</code>/<code class="inline">l</code>). Boxes are rounded to the <strong>nearest power of two</strong>. The tool <em>maximizes</em> element sizes while ensuring everything fits your atlas.</p>
 </header>
 <main class="grid">
   <section class="card">
     <h2>1) Import CSV</h2>
     <div class="drop" id="drop">
-      <div><strong>Drag & drop</strong> your CSV here or</div>
+      <div><strong>Drag & drop</strong> CSV here or</div>
       <div style="margin-top:8px"><input type="file" id="file" accept=".csv" /></div>
-      <div class="hint">Expected headers: <code class="inline">Texture Name,size</code> (e.g. <code class="inline">Grass,s</code>, <code class="inline">Brick,l</code>)</div>
+      <div class="hint">Headers must be: <code class="inline">Texture Name,size</code> (e.g. <code class="inline">Grass,s</code>)</div>
     </div>
 
     <h2 style="margin-top:18px">2) Atlas Settings</h2>
-    <label for="atlasSize">Max atlas resolution</label>
+    <label for="atlasSize">Atlas size</label>
     <div class="row">
       <input id="atlasSize" type="text" placeholder="e.g. 4096 or 4096x2048" />
       <input id="padding" type="number" min="0" value="4" title="Padding (px)" />
     </div>
-    <div class="hint">You can enter a single square value (e.g. <em>4096</em>) or <em>width x height</em> (e.g. <em>4096x2048</em>). Padding adds space around every box.</div>
+    <div class="hint">Enter a single number for square (e.g. <em>2048</em>) or <em>width x height</em> (e.g. <em>4096x2048</em>). No more confusing "x4"—that's gone.</div>
 
     <details style="margin-top:12px">
-      <summary style="cursor:pointer;color:#bfe9f5">Advanced: size weights (relative area)</summary>
+      <summary style="cursor:pointer;color:#bfe9f5">Advanced</summary>
       <div class="row" style="margin-top:8px">
         <label>S weight</label><input id="wS" type="number" min="0.1" step="0.1" value="1">
       </div>
@@ -104,20 +72,30 @@
       <div class="row" style="margin-top:8px">
         <label>L weight</label><input id="wL" type="number" min="0.1" step="0.1" value="4">
       </div>
-      <div class="hint">Boxes are sized by area proportion: L is 4× S by default, M is 2× S, etc.</div>
+      <div class="row" style="margin-top:8px">
+        <label>PoT rounding</label>
+        <select id="potMode">
+          <option value="nearest" selected>Nearest power of two</option>
+          <option value="down">Round down (floor to PoT)</option>
+        </select>
+      </div>
+      <div class="switch" style="margin-top:8px">
+        <input id="autoUpdate" type="checkbox" checked /> <label for="autoUpdate">Auto-update on changes</label>
+      </div>
+      <div class="hint">Weights control relative <em>area</em>. Binary search maximizes sizes while ensuring everything packs into your atlas.</div>
     </details>
 
     <div style="margin-top:16px" class="toolbar">
-      <button id="calc" class="btn" disabled>🧮 Calculate & Render</button>
+      <button id="calc" class="btn">🧮 Calculate & Render</button>
       <button id="save" class="btn secondary" disabled>💾 Save PNG</button>
       <button id="copy" class="btn secondary" disabled>📋 Copy PNG</button>
-      <span id="status" class="tag">No CSV loaded</span>
+      <span id="status" class="tag">Load a CSV to begin</span>
     </div>
 
     <div style="margin-top:12px" class="kv">
       <div>Parsed rows:</div><div id="rowCount">0</div>
-      <div>Packed:</div><div id="fitStatus">–</div>
-      <div>Atlas size:</div><div id="atlasOut">–</div>
+      <div>Packing:</div><div id="fitStatus">–</div>
+      <div>Atlas:</div><div id="atlasOut">–</div>
     </div>
 
     <details style="margin-top:12px">
@@ -134,38 +112,33 @@ Tile,m
 Foam,s</code></pre>
     </details>
 
-    <div class="footer">Tip: After rendering, right-click the image and “Save image as…” if your browser blocks the button download.</div>
+    <div class="footer">Tip: You can tweak values and hit <strong>Calculate</strong> any time—no refresh needed.</div>
   </section>
 
   <section class="card">
     <h2>3) Atlas Preview</h2>
-    <div class="output-wrap">
-      <canvas id="canvas" width="1024" height="1024" aria-label="Atlas canvas"></canvas>
-      <div id="fitNote" class=""></div>
-    </div>
+    <canvas id="canvas" width="2048" height="2048" aria-label="Atlas canvas"></canvas>
+    <div id="fitNote" class="hint"></div>
   </section>
 </main>
 
 <script>
-/* ===================== Helpers ===================== */
+// ===================== CSV Parsing =====================
 function parseCSV(text){
-  // Simple CSV parser (no quoted commas). Trim + ignore empty lines.
   const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
   if(!lines.length) return [];
   const header = lines[0].split(',').map(h=>h.trim().toLowerCase());
   const nameIdx = header.findIndex(h => h.startsWith('texture'));
   const sizeIdx = header.findIndex(h => h === 'size' || h.endsWith('size'));
-  if(nameIdx === -1 || sizeIdx === -1) throw new Error("CSV must include headers 'Texture Name' and 'size'.");
-
+  if(nameIdx === -1 || sizeIdx === -1) throw new Error("CSV must include 'Texture Name' and 'size'.");
   const rows = [];
   for(let i=1;i<lines.length;i++){
     const parts = lines[i].split(',').map(s=>s.trim());
     if(parts.length < 2) continue;
     const name = parts[nameIdx];
-    const sz = parts[sizeIdx]?.toLowerCase();
-    if(!name) continue;
-    if(!['s','m','l'].includes(sz)) continue;
-    rows.push({ name, size: sz });
+    const sz = (parts[sizeIdx]||'').toLowerCase();
+    if(!name || !['s','m','l'].includes(sz)) continue;
+    rows.push({name, size:sz});
   }
   return rows;
 }
@@ -173,9 +146,9 @@ function parseCSV(text){
 function parseAtlasSize(val){
   const s = (val||'').toLowerCase().replace(/\s+/g,'').replace(/×/g,'x');
   if(!s) return null;
-  if (/^\d+$/.test(s)) return { w: +s, h: +s };
+  if(/^\d+$/.test(s)) return {w:+s, h:+s};
   const m = s.match(/^(\d+)[x,](\d+)$/);
-  if(m) return { w:+m[1], h:+m[2] };
+  if(m) return {w:+m[1], h:+m[2]};
   return null;
 }
 
@@ -190,145 +163,136 @@ function dedupeNames(items){
   return items;
 }
 
+// ===================== Power-of-Two helpers =====================
+function isPow2(n){ return n && (n & (n-1)) === 0; }
+function nextPow2(n){ n = Math.max(1, n|0); n--; n|=n>>1; n|=n>>2; n|=n>>4; n|=n>>8; n|=n>>16; return (n+1); }
+function prevPow2(n){ if(n<=1) return 1; return 1 << (31-Math.clz32(n)); }
+function roundPow2(n, mode){
+  if(n<=1) return 1;
+  if(isPow2(n)) return n;
+  const down = prevPow2(n);
+  const up = nextPow2(n);
+  if(mode === 'down') return down;
+  return (up - n) < (n - down) ? up : down; // nearest
+}
+
+// ===================== Binary-tree packer (simple MaxRects-ish) =====================
+function createNode(x,y,w,h){ return {x,y,w,h, used:false, right:null, down:null}; }
+function insert(root, w, h){
+  const node = findNode(root, w, h);
+  if(node) return splitNode(node, w, h);
+  return null;
+}
+function findNode(node, w, h){
+  if(!node) return null;
+  if(node.used){
+    return findNode(node.right, w, h) || findNode(node.down, w, h);
+  } else if(w <= node.w && h <= node.h){
+    return node;
+  }
+  return null;
+}
+function splitNode(node, w, h){
+  node.used = true;
+  node.down = createNode(node.x, node.y + h, node.w, node.h - h);
+  node.right = createNode(node.x + w, node.y, node.w - w, h);
+  return node;
+}
+
+function tryPack(rects, W, H, pad){
+  const root = createNode(0,0,W,H);
+  for(const r of rects){
+    const node = insert(root, r.w + pad*2, r.h + pad*2);
+    if(!node) return false;
+    r.x = node.x + pad;
+    r.y = node.y + pad;
+  }
+  return true;
+}
+
+// ===================== Sizing model + maximize with binary search =====================
+function buildRectsPoT(items, W, H, pad, weights, potMode){
+  // We scale a base unit "u" so that side_i = roundPoT( u * sqrt(weight_i) )
+  // Then pack; use binary search to maximize u that still fits.
+  const wts = items.map(t => (weights[t.size]||1));
+  const sortedIdx = [...items.keys()].sort((a,b)=> wts[b]-wts[a]);
+
+  function canFit(u){
+    const rects = sortedIdx.map(i=>{
+      const side = Math.max(1, Math.round(u * Math.sqrt(wts[i])));
+      const pot = roundPow2(side, potMode);
+      return {i, name:items[i].name, size:items[i].size, w:pot, h:pot};
+    }).sort((a,b)=> (b.h - a.h) || (b.w - a.w));
+    const ok = tryPack(rects, W, H, pad);
+    return {ok, rects};
+  }
+
+  // Bounds for u: start with something conservative
+  let lo = 1, hi = Math.min(W,H); // hi will be increased if possible
+  let best = null;
+
+  // Exponential search to find an upper bound that fails
+  while(true){
+    const {ok} = canFit(hi);
+    if(ok){ lo = hi; hi *= 2; if(hi > 1<<20){ break; } }
+    else break;
+  }
+
+  // Binary search to maximize u
+  for(let iter=0; iter<40; iter++){
+    const mid = (lo + hi) / 2;
+    const res = canFit(mid);
+    if(res.ok){ best = res; lo = mid; } else { hi = mid; }
+  }
+  if(!best){ // fallback smallest
+    best = canFit(1);
+  }
+  return best;
+}
+
+// ===================== Drawing =====================
 function measureText(ctx, text, maxWidth, fontSize){
-  ctx.save();
-  ctx.font = `${fontSize}px ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial`;
-  const lines = [];
-  const words = text.split(/\s+/);
-  let cur = '';
+  ctx.save(); ctx.font = `${fontSize}px ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial`;
+  const lines = []; const words = text.split(/\s+/); let cur = '';
   for(const w of words){
     const tryLine = cur ? cur + ' ' + w : w;
-    if(ctx.measureText(tryLine).width <= maxWidth) cur = tryLine;
-    else {
-      if(cur) lines.push(cur);
-      cur = w;
-    }
+    if(ctx.measureText(tryLine).width <= maxWidth) cur = tryLine; else { if(cur) lines.push(cur); cur = w; }
   }
-  if(cur) lines.push(cur);
-  ctx.restore();
-  return lines;
+  if(cur) lines.push(cur); ctx.restore(); return lines;
 }
 
-/* ============ Proportional sizing + packing ============ */
-// Compute target square sizes from relative weights and pack with a shelf algorithm.
-function buildRects(items, W, H, pad, weights){
-  // weights: {s:1, m:2, l:4} by default; map area proportionally and convert to initial square sides
-  const totalArea = (W*H) * 0.94; // leave a little slack
-  const sumW = items.reduce((a,t)=>a + (weights[t.size] || 1), 0);
-  const rects = items.map((t,i)=>{
-    const area = totalArea * (weights[t.size] || 1) / sumW;
-    const side = Math.sqrt(Math.max(4, area)); // at least 2×2 area before padding
-    return { id:i, name:t.name, size:t.size, w:Math.max(1, Math.round(side)), h:Math.max(1, Math.round(side)) };
-  });
-
-  // Sort by height desc for better shelf packing
-  rects.sort((a,b)=> b.h - a.h);
-
-  // Shelf pack
-  let x = pad, y = pad, shelfH = 0;
-  let maxX = 0;
-  for(const r of rects){
-    const rw = r.w + pad*2;
-    const rh = r.h + pad*2;
-
-    if (x + rw > W) { // new shelf
-      x = pad;
-      y += shelfH;
-      shelfH = 0;
-    }
-    r.x = x + pad;
-    r.y = y + pad;
-    x += rw;
-    if (rh > shelfH) shelfH = rh;
-    maxX = Math.max(maxX, x);
-  }
-  const usedW = Math.min(W, Math.max(...rects.map(r => (r.x + r.w + pad) )));
-  const usedH = Math.min(H, Math.max(...rects.map(r => (r.y + r.h + pad) )));
-  return { rects, usedW, usedH };
-}
-
-function scaleToFit(rects, W, H, pad){
-  const maxRight = Math.max(...rects.map(r=> r.x + r.w + pad));
-  const maxBottom = Math.max(...rects.map(r=> r.y + r.h + pad));
-  const scale = Math.min(W / maxRight, H / maxBottom, 1);
-  if (scale < 1){
-    for(const r of rects){
-      r.x = Math.round(r.x * scale);
-      r.y = Math.round(r.y * scale);
-      r.w = Math.max(1, Math.round(r.w * scale));
-      r.h = Math.max(1, Math.round(r.h * scale));
-    }
-  }
-  return scale;
-}
-
-/* ===================== Drawing ===================== */
 function drawAtlas(canvas, W, H, rects, pad){
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
-  // Background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0,0,W,H);
-
-  // Tiling backdrop (subtle)
-  ctx.globalAlpha = 0.05;
-  const grid = 64;
-  for(let gy=0; gy<H; gy+=grid){
-    for(let gx=0; gx<W; gx+=grid){
-      ctx.fillStyle = ((gx/grid + gy/grid) % 2) ? '#000' : '#666';
-      ctx.fillRect(gx,gy,grid,grid);
-    }
-  }
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,W,H);
+  // subtle grid
+  ctx.globalAlpha = 0.05; const grid = 64;
+  for(let gy=0; gy<H; gy+=grid){ for(let gx=0; gx<W; gx+=grid){ ctx.fillStyle = ((gx/grid + gy/grid) % 2) ? '#000' : '#666'; ctx.fillRect(gx,gy,grid,grid); } }
   ctx.globalAlpha = 1;
 
-  // Boxes
-  ctx.strokeStyle = '#111827';
   ctx.lineWidth = Math.max(1, Math.round(Math.max(W,H) / 1024));
   for(const r of rects){
-    // Fill
-    ctx.fillStyle = '#f3f4f6';
-    ctx.fillRect(r.x, r.y, r.w, r.h);
-    // Border
-    ctx.strokeStyle = '#374151';
-    ctx.strokeRect(r.x+.5, r.y+.5, r.w-1, r.h-1);
-
-    // Label
+    ctx.fillStyle = '#f3f4f6'; ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.strokeStyle = '#374151'; ctx.strokeRect(r.x+.5, r.y+.5, r.w-1, r.h-1);
     const inset = Math.max(6, Math.floor(Math.min(r.w, r.h) * 0.06));
-    const labelW = r.w - inset*2;
-    const labelH = r.h - inset*2;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(r.x + inset, r.y + inset, labelW, labelH);
-    ctx.clip();
-
-    const title = r.name;
-    const dims = `${r.w}×${r.h}px`;
+    const labelW = r.w - inset*2; const labelH = r.h - inset*2;
+    ctx.save(); ctx.beginPath(); ctx.rect(r.x + inset, r.y + inset, labelW, labelH); ctx.clip();
+    const title = r.name; const dims = `${r.w}×${r.h}px`;
     const base = Math.max(10, Math.floor(Math.min(r.w, r.h) * 0.12));
     const titleLines = measureText(ctx, title, labelW, base);
     const dy = Math.min(labelH, (titleLines.length * (base + 2) + base + 4));
-
-    ctx.fillStyle = '#111827';
-    ctx.font = `bold ${base}px ui-sans-serif, system-ui, Segoe UI`;
+    ctx.fillStyle = '#111827'; ctx.font = `bold ${base}px ui-sans-serif, system-ui, Segoe UI`;
     let ty = r.y + inset + base + 1;
-    for(const line of titleLines){
-      ctx.fillText(line, r.x + inset + 2, ty);
-      ty += base + 2;
-      if (ty > r.y + inset + labelH - base) break;
-    }
-    ctx.fillStyle = '#374151';
-    ctx.font = `bold ${Math.max(10, Math.floor(base*0.85))}px ui-sans-serif, system-ui`;
+    for(const line of titleLines){ ctx.fillText(line, r.x + inset + 2, ty); ty += base + 2; if (ty > r.y + inset + labelH - base) break; }
+    ctx.fillStyle = '#374151'; ctx.font = `bold ${Math.max(10, Math.floor(base*0.85))}px ui-sans-serif, system-ui`;
     ctx.fillText(dims, r.x + inset + 2, r.y + inset + dy);
     ctx.restore();
   }
-
-  // Border of atlas
-  ctx.strokeStyle = '#0f172a';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(1,1,W-2,H-2);
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.strokeRect(1,1,W-2,H-2);
 }
 
-/* ===================== UI Logic ===================== */
-const el = (id)=>document.getElementById(id);
+// ===================== UI & State =====================
+const el = id=>document.getElementById(id);
 const drop = el('drop');
 const file = el('file');
 const calc = el('calc');
@@ -340,118 +304,77 @@ const fitStatus = el('fitStatus');
 const atlasOut = el('atlasOut');
 const fitNote = el('fitNote');
 const canvas = el('canvas');
+const potModeSel = el('potMode');
 
 let textures = [];
-let lastCanvasURL = null;
 
 function setStatus(txt){ status.textContent = txt; }
-
-function enableActions(can){
-  calc.disabled = !can;
-}
-
-function setButtonsAfterRender(can){
-  saveBtn.disabled = !can;
-  copyBtn.disabled = !can || !('clipboard' in navigator);
-}
+function setButtons(can){ saveBtn.disabled = !can; copyBtn.disabled = !can || !('clipboard' in navigator); }
 
 function handleCSV(text){
   try{
     const rows = parseCSV(text);
-    if(!rows.length) throw new Error("No valid rows found.");
-    dedupeNames(rows);
-    textures = rows;
-    rowCount.textContent = rows.length;
-    setStatus(`Loaded ${rows.length} textures`);
-    enableActions(true);
-  }catch(e){
-    textures = [];
-    rowCount.textContent = '0';
-    setStatus(`Error: ${e.message}`);
-    enableActions(false);
-  }
+    if(!rows.length) throw new Error('No valid rows found.');
+    dedupeNames(rows); textures = rows; rowCount.textContent = rows.length; setStatus(`Loaded ${rows.length} textures`);
+    if(el('autoUpdate').checked) recalc();
+  }catch(e){ textures = []; rowCount.textContent = '0'; setStatus(`Error: ${e.message}`); }
 }
 
-drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.classList.add('drag'); });
-drop.addEventListener('dragleave', ()=> drop.classList.remove('drag'));
-drop.addEventListener('drop', (e)=>{
-  e.preventDefault(); drop.classList.remove('drag');
-  const f = e.dataTransfer.files?.[0];
-  if(!f) return;
-  if(!/\.csv$/i.test(f.name)){ setStatus('Please drop a .csv file'); return; }
-  f.text().then(handleCSV);
-});
-file.addEventListener('change', (e)=>{
-  const f = e.target.files?.[0];
-  if(!f) return;
-  f.text().then(handleCSV);
-});
+// Drag & drop
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev, ()=> drop.classList.remove('drag')));
+drop.addEventListener('drop', e=>{ e.preventDefault(); const f = e.dataTransfer.files?.[0]; if(!f) return; if(!/\.csv$/i.test(f.name)){ setStatus('Please drop a .csv file'); return; } f.text().then(handleCSV); });
+file.addEventListener('change', e=>{ const f = e.target.files?.[0]; if(!f) return; f.text().then(handleCSV); });
 
-calc.addEventListener('click', ()=>{
-  const sizeVal = el('atlasSize').value.trim();
+function getParsedSize(){
+  const parsed = parseAtlasSize(el('atlasSize').value.trim());
+  if(parsed) return parsed; // else fallback current canvas size
+  return {w: canvas.width, h: canvas.height};
+}
+
+function recalc(){
+  const {w:W, h:H} = getParsedSize();
   const pad = Math.max(0, +el('padding').value || 0);
-  const weights = {
-    s: Math.max(0.01, +el('wS').value || 1),
-    m: Math.max(0.01, +el('wM').value || 2),
-    l: Math.max(0.01, +el('wL').value || 4),
-  };
-  const parsed = parseAtlasSize(sizeVal);
-  if(!parsed){ setStatus("Enter a valid atlas size (e.g. 4096 or 4096x2048)"); return; }
-  const {w:W, h:H} = parsed;
-  if(!textures.length){ setStatus("Load a CSV first"); return; }
+  const weights = { s: Math.max(0.01, +el('wS').value || 1), m: Math.max(0.01, +el('wM').value || 2), l: Math.max(0.01, +el('wL').value || 4) };
+  const potMode = potModeSel.value;
+  if(!textures.length){ setStatus('Load a CSV first'); return; }
 
-  // Build and pack
-  const { rects } = buildRects(textures, W, H, pad, weights);
-  const scale = scaleToFit(rects, W, H, pad);
-  const fitOk = scale >= 1 ? 'Fits without scaling' : (scale > 0.2 ? `Scaled by ${(scale*100).toFixed(1)}% to fit` : `Significant downscale ${(scale*100).toFixed(1)}%`);
-
-  // Draw
+  // Build & pack with binary search maximizing size
+  const res = buildRectsPoT(textures, W, H, pad, weights, potMode);
+  const {ok, rects} = res;
   drawAtlas(canvas, W, H, rects, pad);
-
-  // Update UI
   atlasOut.textContent = `${W}×${H}`;
-  fitStatus.innerHTML = scale >= 1 ? `<span class="ok">${fitOk}</span>` : `<span class="warn">${fitOk}</span>`;
-  fitNote.textContent = '';
+  fitStatus.innerHTML = ok ? '<span class="ok">Maximized & packed</span>' : '<span class="warn">Packed with minimal scale</span>';
+  setButtons(true);
   setStatus(`Packed ${textures.length} textures`);
-  setButtonsAfterRender(true);
+  fitNote.textContent = 'All element sizes are power-of-two and as large as possible given the atlas.';
+}
 
-  // Cache a blob URL for save convenience (we'll re-create on demand for fidelity)
-  if (lastCanvasURL) URL.revokeObjectURL(lastCanvasURL);
-  canvas.toBlob((blob)=>{
-    if (blob) lastCanvasURL = URL.createObjectURL(blob);
-  }, 'image/png');
+calc.addEventListener('click', recalc);
+
+// Auto-update on change
+['atlasSize','padding','wS','wM','wL','potMode','autoUpdate'].forEach(id=>{
+  el(id).addEventListener('input', ()=>{ if(el('autoUpdate').checked) recalc(); });
 });
 
+// Save & Copy
 saveBtn.addEventListener('click', ()=>{
-  const sizeVal = el('atlasSize').value.trim();
-  const parsed = parseAtlasSize(sizeVal);
-  const fname = parsed ? `atlas_${parsed.w}x${parsed.h}.png` : 'atlas.png';
-  canvas.toBlob((blob)=>{
-    if(!blob) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = fname;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 100);
-  }, 'image/png');
+  const {w,h} = getParsedSize();
+  const fname = `atlas_${w}x${h}.png`;
+  canvas.toBlob(blob=>{ if(!blob) return; const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },100); }, 'image/png');
 });
-
 copyBtn.addEventListener('click', async ()=>{
   try{
-    await new Promise(res => canvas.toBlob(res, 'image/png'));
     const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
     if(!blob) throw new Error('No blob');
     await navigator.clipboard.write([ new ClipboardItem({ 'image/png': blob }) ]);
     setStatus('PNG copied to clipboard');
-  }catch(err){
-    setStatus('Clipboard copy not supported in this context');
-  }
+  }catch(err){ setStatus('Clipboard copy not supported in this context'); }
 });
 
-// Pre-fill some sensible defaults
-el('atlasSize').value = '2048';
-setStatus('No CSV loaded');
+// Defaults
+el('atlasSize').value = '2048'; // clear "x4" confusion — square by default
+setStatus('Load a CSV to begin');
 </script>
 </body>
 </html>
